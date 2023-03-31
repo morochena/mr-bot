@@ -1,0 +1,9 @@
+# fly.toml file generated for mr-bot on 2023-03-31T00:34:29-04:00
+
+app = "mr-bot"
+kill_signal = "SIGINT"
+kill_timeout = 5
+primary_region = "iad"
+processes = []
+
+[env]
