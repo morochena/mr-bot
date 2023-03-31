@@ -15,7 +15,7 @@ def create_prompt(df, user_input):
     result = search(df, user_input, n=3)
     system_role = """whose expertise is reading and summarizing a roleplaying game rulebook. You are given a query, 
         a series of text embeddings in order of their cosine similarity to the query. 
-        You must take the given embeddings and return a very detailed summary of the rules in the languange of the query: 
+        You must take the given embeddings and return a detailed summary of the rules in the languange of the query: 
             
         Here is the question: """ + user_input + """
             
