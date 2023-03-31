@@ -1,6 +1,6 @@
 # Mortal Reins QA Bot
 
-This is a fan-made Discord bot for (Mortal Reins)[https://www.mythicvisionsgames.com/]. It lets you make queries against the rulebook. 
+This is a fan-made Discord bot for [Mortal Reins](https://www.mythicvisionsgames.com/). It lets you make queries against the rulebook. 
 
 ![Sample Usage](./sample.png)
 
