@@ -96,22 +96,9 @@ async def on_message(message):
         query = message.content[10:]
         answer = reply(embedding_json, query)
 
-        print(answer['answer'])
-        print(answer['sources'])
         if 'answer' in answer:
-            # if answer is more than 2000 characters, split into multiple messages, make sure to break on a space
-            if len(answer['answer']) > 2000:
-                chunks = answer['answer'].split(' ')
-                chunk = ''
-                for word in chunks:
-                    if len(chunk) + len(word) < 2000:
-                        chunk += word + ' '
-                    else:
-                        await message.channel.send(chunk)
-                        chunk = word + ' '
-                await message.channel.send(chunk)
-            else:
-                await message.channel.send(answer['answer'])
-
+            embed = discord.Embed(
+                title=f"Answer to '{query}'", description=answer['answer'], color=discord.Color.green())
+            await message.channel.send(embed=embed)
 
 client.run(os.getenv('DISCORD_TOKEN'))
