@@ -98,8 +98,8 @@ async def on_message(message):
 
         if 'answer' in answer:
             title = f"Answer to '{query}'"
-            if len(title) > 256:
-                title = title[:253] + "..."
+            if len(title) > 250:
+                title = title[:250] + "..."
             embed = discord.Embed(
                 title=title, description=answer['answer'], color=0x741420)
             await message.channel.send(embed=embed)
