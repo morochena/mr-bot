@@ -19,6 +19,3 @@ Example `.env` file:
 OPENAI_API_KEY=sk-...
 DISCORD_TOKEN=MTA...
 ```
-
-## Usage
-
