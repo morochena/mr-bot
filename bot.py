@@ -97,8 +97,11 @@ async def on_message(message):
         answer = reply(embedding_json, query)
 
         if 'answer' in answer:
+            title = f"Answer to '{query}'"
+            if len(title) > 256:
+                title = title[:253] + "..."
             embed = discord.Embed(
-                title=f"Answer to '{query}'", description=answer['answer'], color=0x741420)
+                title=title, description=answer['answer'], color=0x741420)
             await message.channel.send(embed=embed)
 
 client.run(os.getenv('DISCORD_TOKEN'))
