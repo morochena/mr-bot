@@ -98,7 +98,7 @@ async def on_message(message):
 
         if 'answer' in answer:
             embed = discord.Embed(
-                title=f"Answer to '{query}'", description=answer['answer'], color=discord.Color.green())
+                title=f"Answer to '{query}'", description=answer['answer'], color=0x741420)
             await message.channel.send(embed=embed)
 
 client.run(os.getenv('DISCORD_TOKEN'))
