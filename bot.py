@@ -94,7 +94,11 @@ async def on_message(message):
 
     if message.content.startswith('!question'):
         query = message.content[10:]
-        answer = reply(embedding_json, query)
+        try:
+            answer = reply(embedding_json, query)
+        except Exception as e:
+            await message.channel.send(f"Sorry, I couldn't find an answer to your question due to an error: {str(e)}")
+            return
 
         if 'answer' in answer:
             title = f"Answer to '{query}'"
@@ -103,5 +107,7 @@ async def on_message(message):
             embed = discord.Embed(
                 title=title, description=answer['answer'], color=0x741420)
             await message.channel.send(embed=embed)
+        else:
+            await message.channel.send("Sorry, I couldn't find an answer to your question.")
 
 client.run(os.getenv('DISCORD_TOKEN'))
