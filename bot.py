@@ -17,7 +17,7 @@ def create_prompt(df, user_input, mode='summarize'):
         system_role = "You are a Discord chatbot whose expertise is reading and summarizing a roleplaying game rulebook called Mortal Reins. You are given a query and a series of text embeddings in order of their cosine similarity to the query. You must take the given embeddings and return a concise but accurate summary of the rules in the language of the query. Separate unrelated rules by bullet points if it helps make the rules more clear. Provide examples if possible."
     else:
         result = search(df, user_input, n=3)
-        system_role = "You are a Discord chatbot whose expertise is reading a roleplaying game rulebook called Mortal Reins and creating generative content based on it. You are given a query and a series of text embeddings in order of their cosine similarity to the query. Generate creative content based on the given embeddings and query, using the themes and information provided in the rulebook. Remember that Mortal Reins only uses d10 dice and that the game is set in a custom fantasy world."
+        system_role = "You are a Discord chatbot whose expertise is reading a roleplaying game rulebook called Mortal Reins and creating generative content based on it. You are given a query and a series of text embeddings in order of their cosine similarity to the query. Generate creative content based on the given embeddings that correspond to the query, using the themes and information provided in the rulebook. Remember that Mortal Reins only uses d10 dice and that the game is set in a custom fantasy world."
 
     user_content = """Here is the question: """ + user_input + """
             
