@@ -106,27 +106,30 @@ async def on_message(message):
         else:
             await message.channel.send("Sorry, I couldn't find an answer to your question.")
 
+
+client.run(os.getenv('DISCORD_TOKEN'))
+
 # interative cli if you pass in the --cli flag
 # otherwise run the bot
-if __name__ == "__main__":
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--cli', action='store_true')
-    args = parser.parse_args()
+# if __name__ == "__main__":
+#     import argparse
+#     parser = argparse.ArgumentParser()
+#     parser.add_argument('--cli', action='store_true')
+#     args = parser.parse_args()
 
-    if args.cli:
-        while True:
-            query = input('Enter your question: ')
-            try:
-                answer = reply(embedding_json, query)
-            except Exception as e:
-                print(
-                    f"Sorry, I couldn't find an answer to your question due to an error: {str(e)}")
-                continue
+#     if args.cli:
+#         while True:
+#             query = input('Enter your question: ')
+#             try:
+#                 answer = reply(embedding_json, query)
+#             except Exception as e:
+#                 print(
+#                     f"Sorry, I couldn't find an answer to your question due to an error: {str(e)}")
+#                 continue
 
-            if 'answer' in answer:
-                print(f"Answer to '{query}': {answer['answer']}")
-            else:
-                print("Sorry, I couldn't find an answer to your question.")
-    else:
-        client.run(os.getenv('DISCORD_TOKEN'))
+#             if 'answer' in answer:
+#                 print(f"Answer to '{query}': {answer['answer']}")
+#             else:
+#                 print("Sorry, I couldn't find an answer to your question.")
+#     else:
+#         client.run(os.getenv('DISCORD_TOKEN'))
