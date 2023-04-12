@@ -16,8 +16,8 @@ def create_prompt(df, user_input, mode='summarize'):
         result = search(df, user_input, n=3)
         system_role = "You are a Discord chatbot whose expertise is reading and summarizing a roleplaying game rulebook called Mortal Reins. You are given a query, a series of text embeddings in order of their cosine similarity to the query. You must take the given embeddings and return a concise but accurate summary of the rules in the language of the query. Separate unrelated rules by bullet points if it helps make the rules more clear. Provide examples if possible."
     else:
-        result = search(df, user_input, n=1)
-        system_role = "You are a Discord chatbot whose expertise is reading a roleplaying game rulebook called Mortal Reins and generating content based on it. You are given a query and a text embedding that is most similar to the query. Generate creative content based on the given embedding, maintaining the theme and style of the rulebook."
+        result = search(df, user_input, n=1, temperature=0.5)
+        system_role = "You are a Discord chatbot whose expertise is reading a roleplaying game rulebook called Mortal Reins and creating generative content based on it. You are given a query and a text embedding that is most similar to the query. Generate creative content based on the given embedding, using the themes and information provided in the rulebook."
 
     user_content = """Here is the question: """ + user_input + """
             
@@ -35,7 +35,7 @@ Here are the embeddings:
     return messages
 
 
-def search(df, query, n=3, pprint=True):
+def search(df, query, n=3):
     query_embedding = get_embedding(
         query,
         engine="text-embedding-ada-002"
@@ -54,11 +54,14 @@ def search(df, query, n=3, pprint=True):
     return results.head(n)
 
 
-def gpt(messages):
+def gpt(messages, mode):
+    temperature = 0.7
+    if mode == 'generate':
+        temperature = 0.85
     print('Sending request to GPT-3')
     openai.api_key = os.getenv('OPENAI_API_KEY')
     r = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo", messages=messages, temperature=0.7, max_tokens=1500)
+        model="gpt-3.5-turbo", messages=messages, temperature=temperature, max_tokens=1500)
     answer = r.choices[0]["message"]["content"]
     print('Done sending request to GPT-3')
     response = {'answer': answer, 'sources': sources}
@@ -67,7 +70,7 @@ def gpt(messages):
 
 def reply(df, question, mode='summarize'):
     prompt = create_prompt(df, question, mode)
-    response = gpt(prompt)
+    response = gpt(prompt, mode)
     return response
 
 
