@@ -88,6 +88,29 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    if message.content.startswith('!help'):
+        embed = discord.Embed(
+            title="Mortal Reins Discord Bot Help",
+            description="This bot specializes in reading and summarizing the Mortal Reins roleplaying game rulebook. It can also generate creative content based on the rulebook.",
+            color=0x741420
+        )
+        embed.add_field(
+            name="!question [query]",
+            value="Ask the bot a question related to the Mortal Reins rulebook, and it will provide a summary of the most relevant rules.",
+            inline=False
+        )
+        embed.add_field(
+            name="!generate [query]",
+            value="Provide a theme or topic related to the Mortal Reins rulebook, and the bot will generate creative content based on the most similar rulebook page.",
+            inline=False
+        )
+        embed.add_field(
+            name="!help",
+            value="Shows this help message.",
+            inline=False
+        )
+        await message.channel.send(embed=embed)
+
     if message.content.startswith('!question'):
         query = message.content[10:]
         try:
