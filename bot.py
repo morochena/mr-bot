@@ -13,20 +13,16 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def create_prompt(df, user_input):
     result = search(df, user_input, n=3)
-    system_role = """whose expertise is reading and summarizing a roleplaying game rulebook. You are given a query, 
-        a series of text embeddings in order of their cosine similarity to the query. 
-        You must take the given embeddings and return a detailed summary of the rules in the languange of the query: 
-            
-        Here is the question: """ + user_input + """
-            
-        and here are the embeddings: 
-            
-            1.""" + str(result.iloc[0]['text']) + """
-            2.""" + str(result.iloc[1]['text']) + """
-            3.""" + str(result.iloc[2]['text']) + """
-        """
+    system_role = "You are a Discord chatbot whose expertise is reading and summarizing a roleplaying game rulebook called Mortal Reins. You are given a query, a series of text embeddings in order of their cosine similarity to the query. You must take the given embeddings and return a concise but accurate summary of the rules in the language of the query. Separate unrelated rules by bullet points if it helps make the rules more clear. Provide examples if possible."
 
-    user_content = f"""Given the question: "{str(user_input)}". Return a detailed answer based on the rulebook:"""
+    user_content = """Here is the question: """ + user_input + """
+            
+Here are the embeddings: 
+            
+1.""" + str(result.iloc[0]['text']) + """
+2.""" + str(result.iloc[1]['text']) + """
+3.""" + str(result.iloc[2]['text']) + """
+"""
 
     messages = [
         {"role": "system", "content": system_role},
@@ -110,4 +106,27 @@ async def on_message(message):
         else:
             await message.channel.send("Sorry, I couldn't find an answer to your question.")
 
-client.run(os.getenv('DISCORD_TOKEN'))
+# interative cli if you pass in the --cli flag
+# otherwise run the bot
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--cli', action='store_true')
+    args = parser.parse_args()
+
+    if args.cli:
+        while True:
+            query = input('Enter your question: ')
+            try:
+                answer = reply(embedding_json, query)
+            except Exception as e:
+                print(
+                    f"Sorry, I couldn't find an answer to your question due to an error: {str(e)}")
+                continue
+
+            if 'answer' in answer:
+                print(f"Answer to '{query}': {answer['answer']}")
+            else:
+                print("Sorry, I couldn't find an answer to your question.")
+    else:
+        client.run(os.getenv('DISCORD_TOKEN'))
