@@ -11,18 +11,21 @@ load_dotenv()
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
-def create_prompt(df, user_input):
-    result = search(df, user_input, n=3)
-    system_role = "You are a Discord chatbot whose expertise is reading and summarizing a roleplaying game rulebook called Mortal Reins. You are given a query, a series of text embeddings in order of their cosine similarity to the query. You must take the given embeddings and return a concise but accurate summary of the rules in the language of the query. Separate unrelated rules by bullet points if it helps make the rules more clear. Provide examples if possible."
+def create_prompt(df, user_input, mode='summarize'):
+    if mode == 'summarize':
+        result = search(df, user_input, n=3)
+        system_role = "You are a Discord chatbot whose expertise is reading and summarizing a roleplaying game rulebook called Mortal Reins. You are given a query, a series of text embeddings in order of their cosine similarity to the query. You must take the given embeddings and return a concise but accurate summary of the rules in the language of the query. Separate unrelated rules by bullet points if it helps make the rules more clear. Provide examples if possible."
+    else:
+        result = search(df, user_input, n=1)
+        system_role = "You are a Discord chatbot whose expertise is reading a roleplaying game rulebook called Mortal Reins and generating content based on it. You are given a query and a text embedding that is most similar to the query. Generate creative content based on the given embedding, maintaining the theme and style of the rulebook."
 
     user_content = """Here is the question: """ + user_input + """
             
 Here are the embeddings: 
             
-1.""" + str(result.iloc[0]['text']) + """
+1.""" + str(result.iloc[0]['text']) + ("""
 2.""" + str(result.iloc[1]['text']) + """
-3.""" + str(result.iloc[2]['text']) + """
-"""
+3.""" + str(result.iloc[2]['text']) + """\n""" if mode == 'summarize' else "\n")
 
     messages = [
         {"role": "system", "content": system_role},
@@ -41,12 +44,10 @@ def search(df, query, n=3, pprint=True):
         lambda x: cosine_similarity(x, query_embedding))
 
     results = df.sort_values("similarity", ascending=False, ignore_index=True)
-    # make a dictionary of the the first three results with the page number as the key and the text as the value. The page number is a column in the dataframe.
     results = results.head(n)
     global sources
     sources = []
     for i in range(n):
-        # append the page number and the text as a dict to the sources list
         sources.append(
             {'Page '+str(results.iloc[i]['page']): results.iloc[i]['text'][:150]+'...'})
     print(sources)
@@ -64,13 +65,12 @@ def gpt(messages):
     return response
 
 
-def reply(df, question):
-    prompt = create_prompt(df, question)
+def reply(df, question, mode='summarize'):
+    prompt = create_prompt(df, question, mode)
     response = gpt(prompt)
     return response
 
 
-# read embedding.json file
 embedding_json = pd.read_json('embeddings.json')
 
 intents = discord.Intents.default()
@@ -105,6 +105,24 @@ async def on_message(message):
             await message.channel.send(embed=embed)
         else:
             await message.channel.send("Sorry, I couldn't find an answer to your question.")
+
+    elif message.content.startswith('!generate'):
+        query = message.content[9:]
+        try:
+            answer = reply(embedding_json, query, mode='generate')
+        except Exception as e:
+            await message.channel.send(f"Sorry, I couldn't generate content based on your query due to an error: {str(e)}")
+            return
+
+        if 'answer' in answer:
+            title = f"Generated content for '{query}'"
+            if len(title) > 250:
+                title = title[:250] + "..."
+            embed = discord.Embed(
+                title=title, description=answer['answer'], color=0x741420)
+            await message.channel.send(embed=embed)
+        else:
+            await message.channel.send("Sorry, I couldn't generate content based on your query.")
 
 
 client.run(os.getenv('DISCORD_TOKEN'))
