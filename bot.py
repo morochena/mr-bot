@@ -1,3 +1,5 @@
+import sys
+import signal
 import os
 
 import discord
@@ -10,13 +12,26 @@ load_dotenv()
 
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
+embedding_json = pd.read_json('embeddings.json')
+
+intents = discord.Intents.default()
+intents.message_content = True
+client = discord.Client(intents=intents)
+
+
+def signal_handler(signal, frame):
+    sys.exit(0)
+
+
+signal.signal(signal.SIGINT, signal_handler)
+
 
 def create_prompt(df, user_input, mode='summarize'):
     if mode == 'summarize':
-        result = search(df, user_input, n=3)
+        result, sources = search(df, user_input, n=3)
         system_role = "You are a Discord chatbot whose expertise is reading and summarizing a roleplaying game rulebook called Mortal Reins. You are given a query and a series of text embeddings in order of their cosine similarity to the query. You must take the given embeddings and return a concise but accurate summary of the rules in the language of the query. Separate unrelated rules by bullet points if it helps make the rules more clear. Provide examples if possible."
     else:
-        result = search(df, user_input, n=3)
+        result, sources = search(df, user_input, n=3)
         system_role = "You are a Discord chatbot whose expertise is reading a roleplaying game rulebook called Mortal Reins and creating generative content based on it. You are given a query and a series of text embeddings in order of their cosine similarity to the query. Generate creative content based on the given embeddings that correspond to the query, using the themes and information provided in the rulebook. Remember that Mortal Reins only uses d10 dice and that the game is set in a custom fantasy world."
 
     user_content = """Here is the question: """ + user_input + """
@@ -32,7 +47,7 @@ Here are the embeddings:
         {"role": "user", "content": user_content},]
 
     print('Done creating prompt')
-    return messages
+    return messages, sources
 
 
 def search(df, query, n=3):
@@ -45,13 +60,13 @@ def search(df, query, n=3):
 
     results = df.sort_values("similarity", ascending=False, ignore_index=True)
     results = results.head(n)
-    global sources
+
     sources = []
     for i in range(n):
         sources.append(
-            {'Page '+str(results.iloc[i]['page']): results.iloc[i]['text'][:150]+'...'})
+            {'Page ' + str(results.iloc[i]['page']): results.iloc[i]['text'][:150] + '...'})
     print(sources)
-    return results.head(n)
+    return results.head(n), sources
 
 
 def gpt(messages, mode):
@@ -64,21 +79,16 @@ def gpt(messages, mode):
         model="gpt-3.5-turbo", messages=messages, temperature=temperature, max_tokens=1500)
     answer = r.choices[0]["message"]["content"]
     print('Done sending request to GPT-3')
-    response = {'answer': answer, 'sources': sources}
+
+    response = {'answer': answer}
     return response
 
 
 def reply(df, question, mode='summarize'):
-    prompt = create_prompt(df, question, mode)
+    prompt, sources = create_prompt(df, question, mode)
     response = gpt(prompt, mode)
+    response['sources'] = sources
     return response
-
-
-embedding_json = pd.read_json('embeddings.json')
-
-intents = discord.Intents.default()
-intents.message_content = True
-client = discord.Client(intents=intents)
 
 
 @client.event
@@ -112,6 +122,8 @@ async def on_message(message):
             value="Shows this help message.",
             inline=False
         )
+        embed.set_footer(
+            text="Please note that the answers provided may not be perfect. For the most accurate information, refer to the official rulebook.")
         await message.channel.send(embed=embed)
 
     if message.content.startswith('!question'):
@@ -128,6 +140,15 @@ async def on_message(message):
                 title = title[:250] + "..."
             embed = discord.Embed(
                 title=title, description=answer['answer'], color=0x741420)
+
+            # Add sources to the embed
+            sources_text = ", ".join(
+                [f"{k}" for source in answer['sources'] for k, v in source.items()])
+            embed.add_field(
+                name="For more information, you can check the following pages in the rulebook:", value=sources_text, inline=False)
+            embed.set_footer(
+                text="Please note that the answer provided may not be perfect. For the most accurate information, refer to the official rulebook.")
+
             await message.channel.send(embed=embed)
         else:
             await message.channel.send("Sorry, I couldn't find an answer to your question.")
