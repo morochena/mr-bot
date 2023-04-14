@@ -75,6 +75,7 @@ def create_prompt(df, user_input, mode='answer_question'):
 
 
 def search(df, query, n=3):
+    df = df.copy()  # prevent race condition
     query_embedding = get_embedding(
         query,
         engine="text-embedding-ada-002"
