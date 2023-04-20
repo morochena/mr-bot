@@ -59,7 +59,7 @@ Here are rules for creating a character and a template for the character sheet. 
 - Skills are between 0 and 3, 0 is no skill, 3 is masterful skill.
 - Specialties are between 0 and 3, 0 is no specialty, 3 is masterful specialty. Each skill can have a Specialty, which limits it's range of use to a certain subset. For example, the "smash" skill can have a specialty of "blunt" which limits the range of the skill to only be used with blunt weapons. Just provide a name for the specialty.
 - If the character is a magic user, add some spells to the template. They should be based off the theme of the charcter. Only a spell name and short description is needed.
-Add equipment that the character has to the template. This usually includes a weapon, clothing/armor, and other relevant items. Only a name is needed for each item.
+- Add equipment that the character has to the template. This usually includes a weapon, clothing/armor, and other relevant items. Only a name is needed for each item.
 
 Template:
 ```
