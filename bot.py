@@ -250,7 +250,7 @@ async def generate(ctx: interactions.CommandContext, query: str):
         await ctx.send("Sorry, I couldn't generate content based on your query.")
 
 @bot.command(name="npc",
-             description="Generate a random NPC based on the Mortal Reins rulebook."
+             description="Generate a random NPC based on the Mortal Reins rulebook.",
              options=[
                  interactions.Option(
                      name="query",
