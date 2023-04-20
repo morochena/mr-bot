@@ -108,8 +108,6 @@ Equipment:
 
 ```
 
-Ensure you remove any skills that have a value of 0 from the template.
-
 """
 
         user_content = (f"Here is the base concept to generate from: {user_input}\n\n"
