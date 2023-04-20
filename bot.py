@@ -276,6 +276,10 @@ async def npc(ctx: interactions.CommandContext, query: str):
             title = title[:250] + "..."
         embed = interactions.Embed(
             title=title, description=answer['answer'], color=0x741420)
+        
+        embed.set_footer(
+            text="Note: This NPC may not be legal for use in your game. Use it for inspiration!")
+
         await ctx.send(embeds=embed)
     else:
         await ctx.send("Sorry, I couldn't generate content based on your query.")
