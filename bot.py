@@ -26,8 +26,6 @@ embedding_json = pd.read_json('embeddings.json')
 bot = interactions.Client(token=discord_token)
 
 # Signal handler for clean exit
-
-
 def signal_handler(signal, frame):
     sys.exit(0)
 
@@ -46,6 +44,72 @@ def create_prompt(df, user_input, mode='answer_question'):
                        "rules by bullet points if it helps make the rules more clear. Provide examples if possible.")
 
         user_content = (f"Here is the question: {user_input}\n\n"
+                        f"Here are the embeddings:\n\n"
+                        f"1. {result.iloc[0]['text']}\n"
+                        f"2. {result.iloc[1]['text']}\n"
+                        f"3. {result.iloc[2]['text']}\n")
+
+    if mode == 'npc':
+        system_role = """
+You are a Discord chatbot whose expertise is reading a roleplaying game rulebook called Mortal Reins and creating an NPC based on it. You are given a query and a series of text embeddings in order of their cosine similarity to the query. Generate a character based on the given embeddings that correspond to the query, using the themes and information provided in the rulebook. Remember that Mortal Reins only uses d10 dice and that the game is set in a custom fantasy world.
+
+Here are rules for creating a character and a template for the character sheet. You must use the template to create the character and only return the template.
+
+- Base stats are between values 1 and 10, average person is 4. 10 is inhuman strength.
+- Skills are between 0 and 3, 0 is no skill, 3 is masterful skill.
+- Specialties are between 0 and 3, 0 is no specialty, 3 is masterful specialty. Each skill can have a Specialty, which limits it's range of use to a certain subset. For example, the "smash" skill can have a specialty of "blunt" which limits the range of the skill to only be used with blunt weapons. Just provide a name for the specialty.
+- If the character is a magic user, add some spells to the template. They should be based off the theme of the charcter. Only a spell name and short description is needed.
+Add equipment that the character has to the template. This usually includes a weapon, clothing/armor, and other relevant items. Only a name is needed for each item.
+
+Template:
+```
+name: (a name for the character)
+description: (a short description of the character)
+
+Base Stats:
+---
+str:
+dex:
+emp:
+int:
+
+Skills:
+---
+smash:
+launch:
+athletics:
+physique:
+provoke:
+accuracy:
+mobility:
+thievery:
+notice:
+stealth:
+animal_handling:
+deceive:
+rapport:
+willpower:
+mysticism:
+craft:
+travel:
+reasoning:
+lore:
+resourcefulness:
+
+Specialties:
+---
+
+
+Spells: 
+---
+
+Equipment:
+---
+
+```
+"""
+
+        user_content = (f"Here is the base concept to generate from: {user_input}\n\n"
                         f"Here are the embeddings:\n\n"
                         f"1. {result.iloc[0]['text']}\n"
                         f"2. {result.iloc[1]['text']}\n"
@@ -185,7 +249,37 @@ async def generate(ctx: interactions.CommandContext, query: str):
     else:
         await ctx.send("Sorry, I couldn't generate content based on your query.")
 
+@bot.command(name="npc",
+             description="Generate a random NPC based on the Mortal Reins rulebook."
+             options=[
+                 interactions.Option(
+                     name="query",
+                     description="A theme or topic related to the rulebook.",
+                     type=interactions.OptionType.STRING,
+                     required=True
+                 )
+             ])
+async def npc(ctx: interactions.CommandContext, query: str):
+    logger.info(f"Received generate request: {query}")
+    await ctx.defer()
+    try:
+        answer = reply(embedding_json, query, mode='npc')
+    except Exception as e:
+        logger.error(f"Error processing generate request: {str(e)}")
+        await ctx.send(f"Sorry, I couldn't generate content based on your query due to an error: {str(e)}")
+        return
 
+    if 'answer' in answer:
+        logger.info("Sending generated content")
+        title = f"Generated NPC based on '{query}'"
+        if len(title) > 250:
+            title = title[:250] + "..."
+        embed = interactions.Embed(
+            title=title, description=answer['answer'], color=0x741420)
+        await ctx.send(embeds=embed)
+    else:
+        await ctx.send("Sorry, I couldn't generate content based on your query.")
+    
 @bot.command(name="help",
              description="Show help information for the Mortal Reins bot.")
 async def help(ctx):
